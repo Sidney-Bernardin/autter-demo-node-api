@@ -20,3 +20,24 @@ describe("planted API bugs", () => {
     expect(res.statusCode).toBe(200);
   });
 });
+describe("zod project schema contract", () => {
+  test("validates payloads and strips unknown fields", async () => {
+    const app = buildApp();
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/projects",
+      payload: { name: "project-a", config: { retries: 3, unknownField: "ignored" } },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toEqual({ name: "project-a", config: { retries: 3 } });
+  });
+  test("rejects payloads missing required fields", async () => {
+    const app = buildApp();
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/projects",
+      payload: { config: {} },
+    });
+    expect(res.statusCode).not.toBe(200);
+  });
+});
